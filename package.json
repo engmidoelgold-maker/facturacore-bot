@@ -1,7 +1,6 @@
 {
   "name": "facturacore-bot",
   "version": "1.0.0",
-  "description": "Bot WhatsApp FacturaCore",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
