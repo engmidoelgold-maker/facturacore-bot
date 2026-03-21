@@ -11,8 +11,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const SYSTEM_PROMPT = `
-Eres el asistente virtual oficial de FacturaCore.
+app.post("/webhook", async (req, res) => {
+  const incomingMsg = req.body.Body;
+
+  let aiReply = "Hola 👋";
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `Eres el asistente virtual oficial de FacturaCore.
 
 FacturaCore es una plataforma mexicana de facturación electrónica CFDI 4.0 que permite a empresas, emprendedores y contadores emitir facturas de forma rápida, segura y profesional.
 
@@ -108,10 +118,6 @@ REGLAS DE VENTA:
 • Si factura seguido → Growth
 • Si quiere automatización → Pro
 • Si es empresa grande → Enterprise
-
-Ejemplo:
-
-"Te recomiendo el plan Core Pro porque incluye facturación masiva, multiempresa y conciliación bancaria."
 
 --------------------------------------------------
 
@@ -211,45 +217,30 @@ Respondes:
 
 CIERRE SIEMPRE:
 
-"¿Quieres que te ayude paso a paso?"
-`;
-
-app.post("/webhook", async (req, res) => {
-  const incomingMsg = req.body.Body || "";
-
-  let aiReply = "Hola 👋";
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: SYSTEM_PROMPT
+"¿Quieres que te ayude paso a paso?"`
         },
         {
           role: "user",
           content: incomingMsg
         }
       ],
-      temperature: 0.5,
-      max_tokens: 500
     });
 
-    aiReply = completion.choices[0].message.content?.trim() || "¿Quieres que te ayude paso a paso?";
+    aiReply = completion.choices[0].message.content.trim();
+
   } catch (error) {
-    aiReply = "⚠️ Error temporal, intenta de nuevo.";
-    console.error("OpenAI error:", error);
+    console.error(error);
+    aiReply = "⚠️ Error temporal, intenta nuevamente.";
   }
 
   const twiml = new MessagingResponse();
   twiml.message(aiReply);
 
-  res.writeHead(200, { "Content-Type": "text/xml" });
-  res.end(twiml.toString());
+  res.status(200).type("text/xml");
+  res.send(twiml.toString());
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Servidor PRO corriendo en puerto " + PORT);
+  console.log("Servidor FacturaCore BOT activo en puerto " + PORT);
 });
