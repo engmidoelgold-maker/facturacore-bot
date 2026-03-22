@@ -4,10 +4,14 @@ const bodyParser = require("body-parser");
 const axios = require("axios");
 const { MessagingResponse } = require("twilio").twiml;
 const twilio = require("twilio");
+const cors = require("cors"); // 🔥 NUEVO
 
 const app = express();
+
+// 🔥 MIDDLEWARES
+app.use(cors()); // 🔥 IMPORTANTE
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // 🔥 TWILIO CLIENT
 const client = twilio(
@@ -30,7 +34,6 @@ app.post("/webhook", async (req, res) => {
 
   console.log("📩 Mensaje:", incomingMsg);
 
-  // 👉 GUARDAR MENSAJE
   messages.push({
     from,
     message: incomingMsg,
@@ -43,7 +46,7 @@ app.post("/webhook", async (req, res) => {
     incomingMsg.includes("humano") ||
     incomingMsg.includes("asesor")
   ) {
-    reply = "👨‍💼 Un asesor te atenderá pronto.";
+    reply = "👨‍💼 Un asesor de FacturaCore te atenderá pronto.";
 
   } else {
     try {
@@ -54,7 +57,8 @@ app.post("/webhook", async (req, res) => {
       reply = response.data.text || "Error IA";
 
     } catch (error) {
-      reply = "Error IA";
+      console.log("❌ FLOWISE ERROR:", error.message);
+      reply = "⚠️ Error IA";
     }
   }
 
@@ -76,12 +80,18 @@ app.get("/messages", (req, res) => {
 // ENVIAR MENSAJE (PANEL)
 // =======================
 app.post("/send", async (req, res) => {
+  console.log("📤 Intento enviar");
+
   const { to, message } = req.body;
+
+  if (!to || !message) {
+    return res.json({ ok: false, error: "Faltan datos" });
+  }
 
   try {
     await client.messages.create({
       from: "whatsapp:+14155238886",
-      to: to,
+      to: to.startsWith("whatsapp:") ? to : `whatsapp:${to}`,
       body: message
     });
 
@@ -90,8 +100,8 @@ app.post("/send", async (req, res) => {
     res.json({ ok: true });
 
   } catch (error) {
-    console.log("❌ Error:", error.message);
-    res.json({ ok: false });
+    console.log("❌ TWILIO ERROR:", error.message);
+    res.json({ ok: false, error: error.message });
   }
 });
 
