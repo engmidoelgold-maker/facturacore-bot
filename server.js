@@ -25,7 +25,7 @@ app.post("/webhook", async (req, res) => {
     incomingMsg.includes("asesor") ||
     incomingMsg.includes("agente")
   ) {
-    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore.\n\n📞 Escríbenos directamente aquí: https://wa.me/5215566199990";
+    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore.\n\n📞 Llámanos directamente aquí: 5215559469530";
 
     console.log("🚨 Cliente quiere humano:", from);
 
