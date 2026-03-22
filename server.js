@@ -39,7 +39,7 @@ app.post("/webhook", async (req, res) => {
       // 🔥 NOTIFICACIÓN A TI (CAMBIA TU NÚMERO)
       await client.messages.create({
         from: "whatsapp:+14155238886",
-        to: "whatsapp:+525566199990", // 👈 PON TU NÚMERO REAL
+        to: "whatsapp:+5215566199990", // 👈 PON TU NÚMERO REAL
         body: `🚨 Cliente necesita ayuda:\n\nMensaje: ${incomingMsg}\nCliente: ${from}`
       });
 
