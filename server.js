@@ -1,55 +1,49 @@
 require("dotenv").config();
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
 const { MessagingResponse } = require("twilio").twiml;
-const twilio = require("twilio");
-const cors = require("cors");
 
 const app = express();
 
-app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
+// 🔥 FLOWISE
 const FLOWISE_URL = "https://cloud.flowiseai.com/api/v1/prediction/9d661c85-afa4-4b96-b608-8f152f5eb0a4";
-
-let messages = [];
 
 app.post("/webhook", async (req, res) => {
   const incomingMsg = (req.body.Body || "").toLowerCase();
   const from = req.body.From;
 
   console.log("📩 Mensaje:", incomingMsg);
-
-  messages.push({
-    from,
-    message: incomingMsg,
-    date: new Date()
-  });
+  console.log("👤 Cliente:", from);
 
   let reply = "";
 
+  // 🔴 DETECTAR HUMANO
   if (
     incomingMsg.includes("humano") ||
-    incomingMsg.includes("asesor")
+    incomingMsg.includes("asesor") ||
+    incomingMsg.includes("agente")
   ) {
-    reply = "👨‍💼 Un asesor de FacturaCore te atenderá pronto.";
+    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore.\n\n📞 Llámanos directamente aquí: 5215559469530";
+
+    console.log("🚨 Cliente quiere humano:", from);
+
   } else {
     try {
       const response = await axios.post(FLOWISE_URL, {
-        question: incomingMsg
+        question: incomingMsg,
       });
 
-      reply = response.data.text || "Error IA";
+      reply = response.data.text || "No pude responder correctamente.";
+
+      console.log("🤖 Respuesta AI:", reply);
+
     } catch (error) {
-      console.log("❌ FLOWISE ERROR:", error.message);
-      reply = "⚠️ Error IA";
+      console.error("❌ ERROR FLOWISE:", error.message);
+      reply = "⚠️ Error conectando con la IA.";
     }
   }
 
@@ -60,35 +54,9 @@ app.post("/webhook", async (req, res) => {
   res.send(twiml.toString());
 });
 
-app.get("/messages", (req, res) => {
-  res.json(messages);
-});
-
-app.post("/send", async (req, res) => {
-  console.log("📤 Intento enviar");
-
-  const { to, message } = req.body;
-
-  if (!to || !message) {
-    return res.json({ ok: false, error: "Faltan datos" });
-  }
-
-  try {
-    await client.messages.create({
-      from: "whatsapp:+14155238886",
-      to: to.startsWith("whatsapp:") ? to : `whatsapp:${to}`,
-      body: message
-    });
-
-    console.log("✅ Enviado a:", to);
-    res.json({ ok: true });
-  } catch (error) {
-    console.log("❌ TWILIO ERROR:", error.message);
-    res.json({ ok: false, error: error.message });
-  }
-});
-
+// 🚀 SERVER
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("🔥 FacturaCore PRO corriendo en puerto " + PORT);
+  console.log("🔥 FacturaCore AI activo en puerto " + PORT);
 });
