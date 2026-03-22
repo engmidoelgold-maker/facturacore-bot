@@ -7,39 +7,10 @@ const { MessagingResponse } = require("twilio").twiml;
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// 🔥 TU FLOWISE ENDPOINT (CAMBIA ESTO)
+// 🔥 FLOWISE
 const FLOWISE_URL = "https://cloud.flowiseai.com/api/v1/prediction/9d661c85-afa4-4b96-b608-8f152f5eb0a4";
 
 app.post("/webhook", async (req, res) => {
-  console.log("🔥 MENSAJE RECIBIDO");
-
-  const msg = req.body.Body;
-  const from = req.body.From;
-
-  console.log("Cliente:", from);
-  console.log("Mensaje:", msg);
-
-  const twilio = require("twilio");
-
-  const client = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
-
-  try {
-    await client.messages.create({
-      from: "whatsapp:+14155238886",
-      to: from,
-      body: "🔥 FacturaCore: Mensaje recibido, te responderemos pronto."
-    });
-
-    console.log("✅ Respuesta enviada");
-  } catch (error) {
-    console.log("❌ Error:", error.message);
-  }
-
-  res.send("ok");
-});, async (req, res) => {
   const incomingMsg = req.body.Body;
 
   console.log("📩 Mensaje recibido:", incomingMsg);
@@ -47,7 +18,6 @@ app.post("/webhook", async (req, res) => {
   let aiReply = "⚠️ Error temporal, intenta de nuevo.";
 
   try {
-    // 🚀 LLAMADA A FLOWISE (TU AI PRO)
     const response = await axios.post(FLOWISE_URL, {
       question: incomingMsg,
     });
@@ -61,6 +31,7 @@ app.post("/webhook", async (req, res) => {
     aiReply = "⚠️ Error conectando con la IA.";
   }
 
+  // 🔥 RESPUESTA A WHATSAPP
   const twiml = new MessagingResponse();
   twiml.message(aiReply);
 
