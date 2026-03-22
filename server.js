@@ -3,19 +3,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
 const { MessagingResponse } = require("twilio").twiml;
-const twilio = require("twilio");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // 🔥 FLOWISE
 const FLOWISE_URL = "https://cloud.flowiseai.com/api/v1/prediction/9d661c85-afa4-4b96-b608-8f152f5eb0a4";
-
-// 🔥 TWILIO CLIENT
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
 
 app.post("/webhook", async (req, res) => {
   const incomingMsg = (req.body.Body || "").toLowerCase();
@@ -32,21 +25,9 @@ app.post("/webhook", async (req, res) => {
     incomingMsg.includes("asesor") ||
     incomingMsg.includes("agente")
   ) {
-    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore, espera un momento...";
-    console.log("🚨 ESCALADO A HUMANO:", from);
+    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore.\n\n📞 Escríbenos directamente aquí: https://wa.me/5215566199990";
 
-    try {
-      // 🔥 NOTIFICACIÓN A TI (CAMBIA TU NÚMERO)
-      await client.messages.create({
-        from: "whatsapp:+14155238886",
-        to: "whatsapp:+5215566199990", // 👈 PON TU NÚMERO REAL
-        body: `🚨 Cliente necesita ayuda:\n\nMensaje: ${incomingMsg}\nCliente: ${from}`
-      });
-
-      console.log("✅ Notificación enviada a tu WhatsApp");
-    } catch (error) {
-      console.error("❌ Error enviando notificación:", error.message);
-    }
+    console.log("🚨 Cliente quiere humano:", from);
 
   } else {
     try {
@@ -73,5 +54,5 @@ app.post("/webhook", async (req, res) => {
 // 🚀 SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("🔥 FacturaCore AI conectado con Flowise en puerto " + PORT);
+  console.log("🔥 FacturaCore AI activo en puerto " + PORT);
 });
