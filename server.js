@@ -11,29 +11,39 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const FLOWISE_URL = "https://cloud.flowiseai.com/api/v1/prediction/9d661c85-afa4-4b96-b608-8f152f5eb0a4";
 
 app.post("/webhook", async (req, res) => {
-  const incomingMsg = req.body.Body;
+  const incomingMsg = req.body.Body.toLowerCase();
+  const from = req.body.From;
 
-  console.log("📩 Mensaje recibido:", incomingMsg);
+  console.log("📩 Mensaje:", incomingMsg);
+  console.log("👤 Cliente:", from);
 
-  let aiReply = "⚠️ Error temporal, intenta de nuevo.";
+  let reply = "";
 
-  try {
-    const response = await axios.post(FLOWISE_URL, {
-      question: incomingMsg,
-    });
+  // Detectar si quiere humano
+  if (
+    incomingMsg.includes("humano") ||
+    incomingMsg.includes("asesor") ||
+    incomingMsg.includes("agente")
+  ) {
+    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore, espera un momento...";
+    console.log("🚨 ESCALADO A HUMANO:", from);
+  } else {
+    try {
+      const response = await axios.post(FLOWISE_URL, {
+        question: incomingMsg,
+      });
 
-    aiReply = response.data.text || "No pude responder correctamente.";
+      reply = response.data.text || "No pude responder correctamente.";
+      console.log("🤖 Respuesta AI:", reply);
 
-    console.log("🤖 Respuesta AI:", aiReply);
-
-  } catch (error) {
-    console.error("❌ ERROR FLOWISE:", error.message);
-    aiReply = "⚠️ Error conectando con la IA.";
+    } catch (error) {
+      console.error("❌ ERROR FLOWISE:", error.message);
+      reply = "⚠️ Error conectando con la IA.";
+    }
   }
 
-  // 🔥 RESPUESTA A WHATSAPP
   const twiml = new MessagingResponse();
-  twiml.message(aiReply);
+  twiml.message(reply);
 
   res.type("text/xml");
   res.send(twiml.toString());
