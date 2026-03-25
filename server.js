@@ -27,7 +27,7 @@ app.post("/webhook", async (req, res) => {
     incomingMsg.includes("asesor") ||
     incomingMsg.includes("agente")
   ) {
-    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore.\n\n📞 Llámanos directamente aquí: 5215559469530 o al correo electrónico contacto@facturacore.mx";
+    reply = "👨‍💼 Te estoy conectando con un asesor de FacturaCore.📞 Llámanos directamente: +52 1 555 946 9530 📧 Escríbenos: contacto@facturacore.mx ";
 
     console.log("🚨 Cliente quiere humano:", from);
 
